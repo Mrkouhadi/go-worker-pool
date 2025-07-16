@@ -1,48 +1,25 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"math/rand"
 	"time"
 )
 
 const (
-	numTasks    = 100
 	workerCount = 8
-	rateLimit   = 100 // ms
-	taskTimeout = 5   // seconds
-	retryCount  = 3
+	rateLimit   = time.Millisecond * 250
 )
 
 func main() {
-
-	pool := NewWorkerPool(workerCount, time.Millisecond*rateLimit, numTasks)
+	pool := NewWorkerPool(workerCount, rateLimit, len(tasks))
 	pool.Start()
 
-	results := make(chan Result, numTasks)
-	tasks := make([]Task, 0, numTasks)
+	results := make(chan Result, len(tasks))
 
-	for i := 0; i < numTasks; i++ {
-		id := i
-		localID := id
-		tasks = append(tasks, Task{
-			ID:       localID,
-			Priority: rand.Intn(5),
-			Timeout:  time.Second * taskTimeout,
-			Retries:  retryCount,
-			ResultCh: results,
-			Exec: func(ctx context.Context) (any, error) {
-				if rand.Float32() < 0.3 {
-					return nil, errors.New("random error")
-				}
-				time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
-				return fmt.Sprintf("Task-%d done", localID), nil
-			},
-		})
+	// Set ResultCh for each task before submission
+	for i := range tasks {
+		tasks[i].ResultCh = results
 	}
-
 	pool.Submit(tasks)
 
 	go func() {

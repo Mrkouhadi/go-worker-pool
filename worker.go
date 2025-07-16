@@ -100,7 +100,9 @@ func (wp *WorkerPool) handleTask(task Task, workerID int) {
 			break
 		} else {
 			result = Result{TaskID: task.ID, Value: nil, Err: err}
-			sleep := time.Duration(100*(1<<attempt)) * time.Millisecond
+			// creates exponentially increasing delays between retry attempts.
+			sleep := time.Duration(100*(1<<attempt)) * time.Millisecond // 1st try wait 100ms, 2nd retry wait 200ms
+			// Adds a random jitter between 0-50ms to the sleep duration. it Helps prevent the "thundering herd" problem when many workers retry simultaneously
 			sleep += time.Duration(rand.Intn(50)) * time.Millisecond
 			time.Sleep(sleep)
 		}
