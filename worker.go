@@ -60,6 +60,7 @@ func (wp *WorkerPool) Stop(results chan Result) {
 }
 
 func (wp *WorkerPool) Submit(tasks []Task) {
+	// sort tasks based on the priority
 	sort.Slice(tasks, func(i, j int) bool {
 		return tasks[i].Priority > tasks[j].Priority
 	})

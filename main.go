@@ -7,10 +7,11 @@ import (
 
 const (
 	workerCount = 8
-	rateLimit   = time.Millisecond * 250
+	rateLimit   = time.Millisecond * 100
 )
 
 func main() {
+
 	pool := NewWorkerPool(workerCount, rateLimit, len(tasks))
 	pool.Start()
 
@@ -20,6 +21,7 @@ func main() {
 	for i := range tasks {
 		tasks[i].ResultCh = results
 	}
+	// submit tasks
 	pool.Submit(tasks)
 
 	go func() {
@@ -33,6 +35,5 @@ func main() {
 	}()
 
 	pool.Stop(results)
-
 	fmt.Printf("\nTotal dropped tasks: %d\n", pool.droppedTaskCount)
 }
